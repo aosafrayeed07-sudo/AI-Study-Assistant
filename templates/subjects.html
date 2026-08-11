@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>📚 Subjects</h1>
+<p class="page-subtitle">Create the subjects you want to study.</p>
+
+<div class="panel">
+
+    <h2>Add New Subject</h2>
+
+    <form action="{{ url_for('add_subject') }}" method="POST">
+
+        <label>Subject name</label>
+        <input type="text" name="name" placeholder="e.g. Python, Calculus, Physics" required>
+
+        <label>Description</label>
+        <textarea name="description" placeholder="What are you studying?"></textarea>
+
+        <button type="submit">Add Subject</button>
+
+    </form>
+</div>
+
+<div class="subject-grid">
+
+{% for subject in subjects %}
+
+    <div class="subject-card">
+        <div class="subject-icon">📘</div>
+        <h3>{{ subject["name"] }}</h3>
+        <p>{{ subject["description"] or "No description." }}</p>
+
+        <a class="delete" href="{{ url_for('delete_subject', subject_id=subject['id']) }}"
+           onclick="return confirm('Delete this subject and its progress?')">
+            Delete
+        </a>
+    </div>
+
+{% else %}
+
+    <div class="empty">
+        <div>📚</div>
+        <h3>No subjects yet</h3>
+    </div>
+
+{% endfor %}
+
+</div>
+
+{% endblock %}

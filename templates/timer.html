@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>⏱️ Study Timer</h1>
+<p class="page-subtitle">Choose how long you want to study.</p>
+
+<div class="timer-container">
+
+    <div id="timer">25:00</div>
+
+    <div class="timer-presets">
+        <button class="preset" onclick="setTimer(15)">15 min</button>
+        <button class="preset active" onclick="setTimer(25)">25 min</button>
+        <button class="preset" onclick="setTimer(45)">45 min</button>
+        <button class="preset" onclick="setTimer(60)">60 min</button>
+    </div>
+
+    <div class="custom-time">
+        <input id="customMinutes" type="number" min="1" max="240" placeholder="Custom minutes">
+        <button onclick="setCustomTimer()">Set</button>
+    </div>
+
+    <div class="timer-buttons">
+        <button onclick="startTimer()">▶ Start</button>
+        <button class="secondary" onclick="pauseTimer()">⏸ Pause</button>
+        <button class="secondary" onclick="resetTimer()">↻ Reset</button>
+    </div>
+
+</div>
+
+<div class="panel">
+
+    <h2>Save Study Session</h2>
+
+    <form action="{{ url_for('save_session') }}" method="POST">
+
+        <label>Subject</label>
+
+        <select name="subject_id" required>
+            <option value="">Select subject</option>
+
+            {% for subject in subjects %}
+                <option value="{{ subject['id'] }}">
+                    {{ subject['name'] }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label>Minutes studied</label>
+
+        <input type="number" name="minutes" min="1" placeholder="25" required>
+
+        <button type="submit">Save Session</button>
+
+    </form>
+
+</div>
+
+{% endblock %}

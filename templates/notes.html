@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>📄 PDF Notes</h1>
+<p class="page-subtitle">Upload a PDF and extract its text for revision.</p>
+
+<div class="panel">
+
+    <form action="{{ url_for('notes') }}" method="POST" enctype="multipart/form-data">
+
+        <label>Select PDF</label>
+
+        <input type="file" name="pdf" accept=".pdf" required>
+
+        <button type="submit">📤 Analyze PDF</button>
+
+    </form>
+
+</div>
+
+{% if filename %}
+
+<div class="panel">
+    <h2>📄 {{ filename }}</h2>
+    <p>Your PDF text has been extracted successfully.</p>
+</div>
+
+{% endif %}
+
+{% if summary %}
+
+<div class="panel">
+    <h2>🤖 AI Summary</h2>
+    <div class="notes-text">{{ summary }}</div>
+</div>
+
+{% endif %}
+
+{% if extracted_text %}
+
+<div class="panel">
+    <h2>Extracted Notes</h2>
+    <div class="notes-text">{{ extracted_text }}</div>
+</div>
+
+{% endif %}
+
+{% endblock %}

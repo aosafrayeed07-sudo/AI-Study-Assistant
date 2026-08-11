@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="hero">
+    <div class="hero-badge">VERSION 2.0</div>
+    <h1>Your Personal <span>Study Assistant</span> 🎓</h1>
+    <p>Study smarter, track your progress, test yourself, and analyze your notes.</p>
+</section>
+
+<div class="cards">
+
+    <div class="card">
+        <div class="card-icon">📚</div>
+        <h3>Subjects</h3>
+        <p>{{ subjects|length }}</p>
+    </div>
+
+    <div class="card">
+        <div class="card-icon">⏱️</div>
+        <h3>Study Time</h3>
+        <p>{{ study_time }} <small>min</small></p>
+    </div>
+
+    <div class="card">
+        <div class="card-icon">📝</div>
+        <h3>Quiz Score</h3>
+        <p>{{ percentage }}%</p>
+    </div>
+
+</div>
+
+<section class="panel">
+    <div class="section-heading">
+        <div>
+            <h2>Your Subjects</h2>
+            <p>Choose a subject and start studying.</p>
+        </div>
+        <a class="button" href="{{ url_for('subjects') }}">+ Add Subject</a>
+    </div>
+
+    {% if subjects %}
+        <div class="subject-grid">
+            {% for subject in subjects %}
+                <div class="subject-card">
+                    <div class="subject-icon">📘</div>
+                    <h3>{{ subject["name"] }}</h3>
+                    <p>{{ subject["description"] or "No description added." }}</p>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty">
+            <div>📚</div>
+            <h3>No subjects yet</h3>
+            <p>Add your first subject to get started.</p>
+        </div>
+    {% endif %}
+</section>
+
+<div class="feature-grid">
+    <a href="{{ url_for('timer') }}" class="feature">
+        <span>⏱️</span>
+        <div>
+            <h3>Custom Timer</h3>
+            <p>Study for 15, 25, 45, 60 minutes or choose your own.</p>
+        </div>
+    </a>
+
+    <a href="{{ url_for('quiz') }}" class="feature">
+        <span>🧠</span>
+        <div>
+            <h3>Random Quizzes</h3>
+            <p>Questions change every time you take a quiz.</p>
+        </div>
+    </a>
+
+    <a href="{{ url_for('notes') }}" class="feature">
+        <span>📄</span>
+        <div>
+            <h3>PDF Notes</h3>
+            <p>Upload notes and extract their text for revision.</p>
+        </div>
+    </a>
+</div>
+
+{% endblock %}

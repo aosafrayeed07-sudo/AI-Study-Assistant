@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="ai-header">
+    <div class="ai-icon">🤖</div>
+
+    <div>
+        <h1>AI Tutor</h1>
+        <p>
+            Ask anything about your studies and learn step by step.
+        </p>
+    </div>
+</div>
+
+
+<!-- CHAT AREA -->
+
+<div class="chat-container">
+
+    {% if chat_history %}
+
+        {% for message in chat_history %}
+
+            {% if message.role == "user" %}
+
+            <div class="chat-message user-message">
+                <div class="message-label">
+                    👤 You
+                </div>
+
+                <div class="message-content">
+                    {{ message.content | replace('\n', '<br>') | safe }}
+                </div>
+            </div>
+
+            {% else %}
+
+            <div class="chat-message ai-message">
+                <div class="message-label">
+                    🤖 AI Tutor
+                </div>
+
+                <div class="message-content">
+                    {{ message.content | replace('\n', '<br>') | safe }}
+                </div>
+            </div>
+
+            {% endif %}
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="empty-chat">
+            🤖 Hello! I'm your AI Tutor.<br>
+            Ask me anything about your studies!
+        </div>
+
+    {% endif %}
+
+</div>
+
+
+<!-- QUESTION FORM -->
+
+<form method="POST" class="ai-form">
+
+    <textarea
+        name="question"
+        placeholder="Ask your AI tutor something..."
+        required
+        autofocus
+    ></textarea>
+
+    <button type="submit">
+        Ask AI ✨
+    </button>
+
+</form>
+
+
+<!-- CLEAR CHAT -->
+
+{% if chat_history %}
+
+<form method="POST" action="{{ url_for('clear_chat') }}" class="clear-chat-form">
+
+    <button type="submit" class="clear-chat-button">
+        🗑️ Clear Chat
+    </button>
+
+</form>
+
+{% endif %}
+
+{% endblock %}

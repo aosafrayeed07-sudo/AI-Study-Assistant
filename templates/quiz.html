@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>🧠 Quiz Center</h1>
+<p class="page-subtitle">Every quiz attempt can contain different questions.</p>
+
+{% if result %}
+
+<div class="result">
+    <div class="result-icon">🎉</div>
+    <h2>Quiz Complete!</h2>
+    <div class="big-score">{{ score }}/{{ total }}</div>
+    <p>You scored {{ percentage }}%</p>
+
+    {% if percentage >= 80 %}
+        <p class="success-text">Excellent work!</p>
+    {% elif percentage >= 50 %}
+        <p class="success-text">Good job. Keep practicing!</p>
+    {% else %}
+        <p class="warning-text">Keep studying and try again!</p>
+    {% endif %}
+</div>
+
+{% else %}
+
+{% if not quiz_questions %}
+
+<div class="panel">
+
+    <h2>Start a Quiz</h2>
+
+    {% if not subjects %}
+        <div class="empty">
+            <h3>Add a subject first.</h3>
+            <a class="button" href="{{ url_for('subjects') }}">Add Subject</a>
+        </div>
+    {% else %}
+
+    <form action="{{ url_for('start_quiz') }}" method="POST">
+
+        <label>Select subject</label>
+
+        <select name="subject_id" required>
+            <option value="">Choose a subject</option>
+
+            {% for subject in subjects %}
+                <option value="{{ subject['id'] }}">
+                    {{ subject['name'] }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <label class="checkbox">
+            <input type="checkbox" name="use_ai">
+            Try AI-generated questions
+        </label>
+
+        <p class="hint">
+            AI mode requires an OpenAI API key. Without one, the built-in
+            question bank is used automatically.
+        </p>
+
+        <button type="submit">🚀 Start Quiz</button>
+
+    </form>
+
+    {% endif %}
+
+</div>
+
+{% else %}
+
+<div class="quiz-header">
+    <div>
+        <span class="quiz-mode">{{ mode }}</span>
+        <h2>{{ subject_name }}</h2>
+    </div>
+    <span>10 questions</span>
+</div>
+
+<form action="{{ url_for('submit_quiz') }}" method="POST">
+
+    <input type="hidden" name="subject_id" value="{{ subject_id }}">
+
+    <input type="hidden" name="questions_json"
+           value='{{ quiz_questions | tojson | safe }}'>
+
+    {% for q in quiz_questions %}
+
+    <div class="question-card">
+
+        <div class="question-number">Question {{ loop.index }}</div>
+
+        <h3>{{ q.question }}</h3>
+
+        {% for option in q.options %}
+
+        <label class="option">
+            <input type="radio"
+                   name="q{{ loop.index0 }}"
+                   value="{{ loop.index0 }}"
+                   required>
+
+            <span>{{ option }}</span>
+        </label>
+
+        {% endfor %}
+
+    </div>
+
+    {% endfor %}
+
+    <button type="submit">Submit Quiz</button>
+
+</form>
+
+{% endif %}
+
+{% endif %}
+
+{% endblock %}

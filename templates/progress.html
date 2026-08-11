@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>📊 Progress</h1>
+<p class="page-subtitle">See how you are performing in each subject.</p>
+
+{% if progress_data %}
+
+<div class="progress-container">
+
+{% for item in progress_data %}
+
+<div class="progress-card">
+
+    <div class="progress-top">
+        <div>
+            <h2>{{ item["name"] }}</h2>
+            <p>{{ item["study"] }} minutes studied</p>
+        </div>
+
+        <strong>{{ item["percentage"] }}%</strong>
+    </div>
+
+    <div class="progress-bar">
+        <div class="progress-fill"
+             style="width: {{ item['percentage'] }}%"></div>
+    </div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="empty">
+    <div>📊</div>
+    <h3>No progress yet</h3>
+    <p>Study and take quizzes to see your progress.</p>
+</div>
+
+{% endif %}
+
+{% endblock %}
