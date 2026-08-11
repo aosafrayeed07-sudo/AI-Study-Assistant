@@ -3,4 +3,4 @@ PyPDF2
 google-generativeai
 gunicorn
 werkzeug
-dotenv
+python-dotenv
