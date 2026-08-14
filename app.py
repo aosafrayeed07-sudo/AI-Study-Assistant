@@ -588,22 +588,46 @@ def start_quiz():
     if not subject:
         return redirect(url_for("quiz"))
 
+    subject_name = subject["name"]
+    pool = get_question_set(subject_name)
+
+    # Use the built-in bank for supported subjects.
+    # For subjects without a built-in bank (Biology, Chemistry, History, etc.),
+    # automatically use Gemini so the generated quiz matches that subject.
+    has_question_bank = bool(pool)
+    should_use_ai = use_ai or not has_question_bank
+
     questions = None
     mode = "Random Question Bank"
 
-    if use_ai:
-        questions = generate_ai_quiz(subject["name"])
+    if should_use_ai:
+        questions = generate_ai_quiz(subject_name)
 
         if questions:
             mode = "AI Generated"
+        elif not has_question_bank:
+            flash(
+                f"Gemini could not generate a quiz for {subject_name} right now. "
+                "Please try again later.",
+                "error"
+            )
+            return redirect(url_for("quiz"))
         else:
             flash(
-                "Gemini AI mode was unavailable, so a random question bank was used.",
+                "Gemini AI mode was unavailable, so the built-in question bank was used.",
                 "info"
             )
 
+    # Never fall back to an unrelated subject's questions.
     if not questions:
-        pool = get_question_set(subject["name"])
+        if not pool:
+            flash(
+                f"No built-in question bank exists for {subject_name}. "
+                "Please enable AI generation.",
+                "error"
+            )
+            return redirect(url_for("quiz"))
+
         questions = random.sample(pool, min(10, len(pool)))
 
     prepared = []
@@ -626,7 +650,7 @@ def start_quiz():
         subjects=get_subjects(),
         quiz_questions=prepared,
         subject_id=subject_id,
-        subject_name=subject["name"],
+        subject_name=subject_name,
         mode=mode
     )
 
@@ -698,8 +722,6 @@ def get_subjects():
     conn.close()
 
     return subjects
-
-
 # ---------------- PDF NOTES ----------------
 
 def allowed_file(filename):
