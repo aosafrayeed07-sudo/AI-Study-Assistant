@@ -810,3 +810,40 @@ button:hover,
     line-height: 1.8;
     color: #dbeafe;
 }
+/* =========================
+   MATH / QUIZ RESPONSIVE FIX
+========================= */
+
+.question-card {
+    overflow-x: auto;
+}
+
+.question-card p,
+.question-card label,
+.option {
+    overflow-wrap: anywhere;
+}
+
+/* Keep large equations from breaking the quiz layout */
+mjx-container {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+/* Mobile quiz */
+@media (max-width: 600px) {
+
+    .question-card {
+        padding: 18px;
+    }
+
+    .option {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    mjx-container {
+        font-size: 90% !important;
+    }
+}
