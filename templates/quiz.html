@@ -3,22 +3,35 @@
 {% block content %}
 
 <h1>🧠 Quiz Center</h1>
-<p class="page-subtitle">Every quiz attempt can contain different questions.</p>
+<p class="page-subtitle">
+    Every quiz attempt can contain different questions.
+</p>
 
 {% if result %}
 
 <div class="result">
     <div class="result-icon">🎉</div>
+
     <h2>Quiz Complete!</h2>
-    <div class="big-score">{{ score }}/{{ total }}</div>
+
+    <div class="big-score">
+        {{ score }}/{{ total }}
+    </div>
+
     <p>You scored {{ percentage }}%</p>
 
     {% if percentage >= 80 %}
-        <p class="success-text">Excellent work!</p>
+        <p class="success-text">
+            Excellent work!
+        </p>
     {% elif percentage >= 50 %}
-        <p class="success-text">Good job. Keep practicing!</p>
+        <p class="success-text">
+            Good job. Keep practicing!
+        </p>
     {% else %}
-        <p class="warning-text">Keep studying and try again!</p>
+        <p class="warning-text">
+            Keep studying and try again!
+        </p>
     {% endif %}
 </div>
 
@@ -31,37 +44,68 @@
     <h2>Start a Quiz</h2>
 
     {% if not subjects %}
+
         <div class="empty">
+
             <h3>Add a subject first.</h3>
-            <a class="button" href="{{ url_for('subjects') }}">Add Subject</a>
+
+            <a
+                class="button"
+                href="{{ url_for('subjects') }}"
+            >
+                Add Subject
+            </a>
+
         </div>
+
     {% else %}
 
-    <form action="{{ url_for('start_quiz') }}" method="POST">
+    <form
+        action="{{ url_for('start_quiz') }}"
+        method="POST"
+    >
 
-        <label>Select subject</label>
+        <label>
+            Select subject
+        </label>
 
-        <select name="subject_id" required>
-            <option value="">Choose a subject</option>
+        <select
+            name="subject_id"
+            required
+        >
+
+            <option value="">
+                Choose a subject
+            </option>
 
             {% for subject in subjects %}
+
                 <option value="{{ subject['id'] }}">
                     {{ subject['name'] }}
                 </option>
+
             {% endfor %}
+
         </select>
 
         <label class="checkbox">
-            <input type="checkbox" name="use_ai">
+
+            <input
+                type="checkbox"
+                name="use_ai"
+            >
+
             Try AI-generated questions
+
         </label>
 
         <p class="hint">
-            AI mode requires an OpenAI API key. Without one, the built-in
-            question bank is used automatically.
+            AI mode generates questions based on the selected subject.
         </p>
 
-        <button type="submit">🚀 Start Quiz</button>
+        <button type="submit">
+            🚀 Start Quiz
+        </button>
 
     </form>
 
@@ -72,37 +116,73 @@
 {% else %}
 
 <div class="quiz-header">
+
     <div>
-        <span class="quiz-mode">{{ mode }}</span>
-        <h2>{{ subject_name }}</h2>
+
+        <span class="quiz-mode">
+            {{ mode }}
+        </span>
+
+        <h2>
+            {{ subject_name }}
+        </h2>
+
     </div>
-    <span>10 questions</span>
+
+    <span>
+        {{ quiz_questions|length }} questions
+    </span>
+
 </div>
 
-<form action="{{ url_for('submit_quiz') }}" method="POST">
 
-    <input type="hidden" name="subject_id" value="{{ subject_id }}">
+<form
+    id="quizForm"
+    action="{{ url_for('submit_quiz') }}"
+    method="POST"
+>
 
-    <input type="hidden" name="questions_json"
-           value='{{ quiz_questions | tojson | safe }}'>
+    <input
+        type="hidden"
+        name="subject_id"
+        value="{{ subject_id }}"
+    >
+
+    <input
+        type="hidden"
+        name="questions_json"
+        value='{{ quiz_questions | tojson | safe }}'
+    >
+
 
     {% for q in quiz_questions %}
 
     <div class="question-card">
 
-        <div class="question-number">Question {{ loop.index }}</div>
+        <div class="question-number">
+            Question {{ loop.index }}
+        </div>
 
-        <h3>{{ q.question }}</h3>
+        <h3>
+            {{ q.question }}
+        </h3>
+
 
         {% for option in q.options %}
 
         <label class="option">
-            <input type="radio"
-                   name="q{{ loop.index0 }}"
-                   value="{{ loop.index0 }}"
-                   required>
 
-            <span>{{ option }}</span>
+            <input
+                type="radio"
+                name="q{{ loop.index0 }}"
+                value="{{ loop.index0 }}"
+                required
+            >
+
+            <span>
+                {{ option }}
+            </span>
+
         </label>
 
         {% endfor %}
@@ -111,7 +191,10 @@
 
     {% endfor %}
 
-    <button type="submit">Submit Quiz</button>
+
+    <button type="submit">
+        Submit Quiz
+    </button>
 
 </form>
 
@@ -120,3 +203,584 @@
 {% endif %}
 
 {% endblock %}
+
+
+<script>
+
+const QUIZ_STORAGE_KEY =
+    "aiStudyAssistantQuizState";
+
+
+/* =========================================
+   SAVE CURRENT QUIZ
+========================================= */
+
+function saveQuizState() {
+
+    const quizForm =
+        document.getElementById("quizForm");
+
+    if (!quizForm) {
+        return;
+    }
+
+
+    const questionsField =
+        quizForm.querySelector(
+            'input[name="questions_json"]'
+        );
+
+    const subjectField =
+        quizForm.querySelector(
+            'input[name="subject_id"]'
+        );
+
+
+    if (!questionsField || !subjectField) {
+        return;
+    }
+
+
+    const answers = {};
+
+
+    quizForm
+        .querySelectorAll(
+            'input[type="radio"]:checked'
+        )
+        .forEach(input => {
+
+            answers[input.name] =
+                input.value;
+
+        });
+
+
+    const state = {
+
+        questions:
+            questionsField.value,
+
+        subjectId:
+            subjectField.value,
+
+        subjectName:
+            {{ subject_name | default("") | tojson }},
+
+        mode:
+            {{ mode | default("") | tojson }},
+
+        answers:
+            answers
+    };
+
+
+    localStorage.setItem(
+        QUIZ_STORAGE_KEY,
+        JSON.stringify(state)
+    );
+}
+
+
+/* =========================================
+   RESTORE SAVED ANSWERS
+========================================= */
+
+function restoreAnswers() {
+
+    const quizForm =
+        document.getElementById("quizForm");
+
+    if (!quizForm) {
+        return;
+    }
+
+
+    const saved =
+        localStorage.getItem(
+            QUIZ_STORAGE_KEY
+        );
+
+
+    if (!saved) {
+        return;
+    }
+
+
+    let state;
+
+    try {
+
+        state = JSON.parse(saved);
+
+    } catch (error) {
+
+        localStorage.removeItem(
+            QUIZ_STORAGE_KEY
+        );
+
+        return;
+    }
+
+
+    if (!state || !state.answers) {
+        return;
+    }
+
+
+    Object.entries(
+        state.answers
+    ).forEach(([name, value]) => {
+
+        const input =
+            quizForm.querySelector(
+                `input[name="${CSS.escape(name)}"][value="${CSS.escape(String(value))}"]`
+            );
+
+
+        if (input) {
+            input.checked = true;
+        }
+
+    });
+}
+
+
+/* =========================================
+   RESTORE QUIZ AFTER RETURNING TO /QUIZ
+========================================= */
+
+function restoreQuizPage() {
+
+    const saved =
+        localStorage.getItem(
+            QUIZ_STORAGE_KEY
+        );
+
+
+    /*
+     * Nothing is saved.
+     * Show the normal Start Quiz page.
+     */
+
+    if (!saved) {
+        return;
+    }
+
+
+    /*
+     * If the server already rendered the
+     * quiz, just restore its answers.
+     */
+
+    const existingQuiz =
+        document.getElementById("quizForm");
+
+
+    if (existingQuiz) {
+
+        restoreAnswers();
+
+        return;
+    }
+
+
+    let state;
+
+    try {
+
+        state =
+            JSON.parse(saved);
+
+    } catch (error) {
+
+        localStorage.removeItem(
+            QUIZ_STORAGE_KEY
+        );
+
+        return;
+    }
+
+
+    if (!state || !state.questions) {
+        return;
+    }
+
+
+    let questions;
+
+    try {
+
+        questions =
+            JSON.parse(state.questions);
+
+    } catch (error) {
+
+        localStorage.removeItem(
+            QUIZ_STORAGE_KEY
+        );
+
+        return;
+    }
+
+
+    if (
+        !Array.isArray(questions) ||
+        questions.length === 0
+    ) {
+
+        localStorage.removeItem(
+            QUIZ_STORAGE_KEY
+        );
+
+        return;
+    }
+
+
+    const panel =
+        document.querySelector(".panel");
+
+
+    if (!panel) {
+        return;
+    }
+
+
+    /*
+     * Create the quiz container.
+     */
+
+    const wrapper =
+        document.createElement("div");
+
+
+    /* ---------------- HEADER ---------------- */
+
+    const header =
+        document.createElement("div");
+
+    header.className =
+        "quiz-header";
+
+
+    const headerLeft =
+        document.createElement("div");
+
+
+    const mode =
+        document.createElement("span");
+
+    mode.className =
+        "quiz-mode";
+
+    mode.textContent =
+        state.mode ||
+        "AI Generated";
+
+
+    const title =
+        document.createElement("h2");
+
+    title.textContent =
+        state.subjectName ||
+        "Quiz";
+
+
+    headerLeft.appendChild(mode);
+    headerLeft.appendChild(title);
+
+
+    const count =
+        document.createElement("span");
+
+    count.textContent =
+        `${questions.length} questions`;
+
+
+    header.appendChild(headerLeft);
+    header.appendChild(count);
+
+
+    wrapper.appendChild(header);
+
+
+    /* ---------------- FORM ---------------- */
+
+    const form =
+        document.createElement("form");
+
+    form.id =
+        "quizForm";
+
+    form.method =
+        "POST";
+
+    form.action =
+        "{{ url_for('submit_quiz') }}";
+
+
+    /* Subject ID */
+
+    const subjectInput =
+        document.createElement("input");
+
+    subjectInput.type =
+        "hidden";
+
+    subjectInput.name =
+        "subject_id";
+
+    subjectInput.value =
+        state.subjectId;
+
+
+    form.appendChild(subjectInput);
+
+
+    /* Questions JSON */
+
+    const questionsInput =
+        document.createElement("input");
+
+    questionsInput.type =
+        "hidden";
+
+    questionsInput.name =
+        "questions_json";
+
+    questionsInput.value =
+        state.questions;
+
+
+    form.appendChild(
+        questionsInput
+    );
+
+
+    /* ---------------- QUESTIONS ---------------- */
+
+    questions.forEach(
+        (question, questionIndex) => {
+
+            const card =
+                document.createElement("div");
+
+            card.className =
+                "question-card";
+
+
+            const number =
+                document.createElement("div");
+
+            number.className =
+                "question-number";
+
+            number.textContent =
+                `Question ${questionIndex + 1}`;
+
+
+            const questionTitle =
+                document.createElement("h3");
+
+            questionTitle.textContent =
+                question.question;
+
+
+            card.appendChild(number);
+
+            card.appendChild(
+                questionTitle
+            );
+
+
+            question.options.forEach(
+                (option, optionIndex) => {
+
+                    const label =
+                        document.createElement("label");
+
+                    label.className =
+                        "option";
+
+
+                    const radio =
+                        document.createElement("input");
+
+                    radio.type =
+                        "radio";
+
+                    radio.name =
+                        `q${questionIndex}`;
+
+                    radio.value =
+                        optionIndex;
+
+                    radio.required =
+                        true;
+
+
+                    /*
+                     * Restore the previous answer.
+                     */
+
+                    if (
+                        state.answers &&
+                        String(
+                            state.answers[
+                                `q${questionIndex}`
+                            ]
+                        ) ===
+                        String(optionIndex)
+                    ) {
+
+                        radio.checked =
+                            true;
+                    }
+
+
+                    radio.addEventListener(
+                        "change",
+                        saveQuizState
+                    );
+
+
+                    const span =
+                        document.createElement("span");
+
+                    span.textContent =
+                        option;
+
+
+                    label.appendChild(
+                        radio
+                    );
+
+                    label.appendChild(
+                        span
+                    );
+
+
+                    card.appendChild(
+                        label
+                    );
+
+                }
+            );
+
+
+            form.appendChild(
+                card
+            );
+
+        }
+    );
+
+
+    /* ---------------- SUBMIT ---------------- */
+
+    const submit =
+        document.createElement("button");
+
+    submit.type =
+        "submit";
+
+    submit.textContent =
+        "Submit Quiz";
+
+
+    form.appendChild(
+        submit
+    );
+
+
+    /*
+     * Don't delete the saved quiz here.
+     * We want the server's result page to
+     * clear it only after successful submit.
+     */
+
+    wrapper.appendChild(
+        form
+    );
+
+
+    /*
+     * Replace the Start Quiz panel with
+     * the saved quiz.
+     */
+
+    panel.replaceWith(
+        wrapper
+    );
+}
+
+
+/* =========================================
+   CLEAR SAVED QUIZ AFTER SUBMISSION
+========================================= */
+
+function clearCompletedQuiz() {
+
+    {% if result %}
+
+        localStorage.removeItem(
+            QUIZ_STORAGE_KEY
+        );
+
+    {% endif %}
+}
+
+
+/* =========================================
+   INITIALIZE
+========================================= */
+
+document.addEventListener(
+    "DOMContentLoaded",
+    () => {
+
+        /*
+         * Attach change listeners to an
+         * already-rendered quiz.
+         */
+
+        document
+            .querySelectorAll(
+                '#quizForm input[type="radio"]'
+            )
+            .forEach(input => {
+
+                input.addEventListener(
+                    "change",
+                    saveQuizState
+                );
+
+            });
+
+
+        /*
+         * Save the newly generated quiz.
+         */
+
+        saveQuizState();
+
+
+        /*
+         * Restore quiz if we returned
+         * from another page.
+         */
+
+        restoreQuizPage();
+
+
+        /*
+         * Clear storage after successful
+         * quiz submission.
+         */
+
+        clearCompletedQuiz();
+
+    }
+);
+
+</script>
